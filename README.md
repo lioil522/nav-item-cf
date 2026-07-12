@@ -1,4 +1,4 @@
-# Nav-item · 佬王导航站（Cloudflare 全家桶版）
+# Nav-item · 导航站（Cloudflare 全家桶版）
 
 ## 👨‍💻 致谢
 基于 **eooce** 的 [nav-item](https://github.com/eooce/nav-item) 改造为 Cloudflare Pages 部署版。
