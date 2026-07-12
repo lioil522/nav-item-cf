@@ -5,10 +5,21 @@ import { cors } from 'hono/cors';
 import { sign, verify } from 'hono/jwt';
 import { handle } from 'hono/cloudflare-pages';
 import bcrypt from 'bcryptjs';
+import { ensureDbInitialized } from '../lib/init.js';
 
 const app = new Hono().basePath('/api');
 
 app.use('*', cors());
+
+// 首次请求自动建表 + 写入默认数据（幂等，无需手动执行 schema.sql）
+app.use('*', async (c, next) => {
+  try {
+    await ensureDbInitialized(c.env);
+  } catch (e) {
+    return c.json({ error: '数据库初始化失败: ' + (e && e.message ? e.message : e) }, 500);
+  }
+  await next();
+});
 
 // ---------- 工具函数 ----------
 function jwtSecret(env) {
