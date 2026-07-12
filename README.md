@@ -2,6 +2,7 @@
 
 ## 👨‍💻 致谢
 基于 **eooce** 的 [nav-item](https://github.com/eooce/nav-item) 改造为 Cloudflare Pages 部署版。
+---
 
 一个现代化的导航网站：**Vue 3** 前端 + **Cloudflare Pages Functions (Hono)** 后端，数据存 **Cloudflare D1**，图片存 **Cloudflare R2**。完全 Serverless，可跑在 Cloudflare 免费额度上，**Fork 一下、连接 Git 就能部署**。
 
