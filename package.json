@@ -1,0 +1,25 @@
+{
+  "name": "nav-item",
+  "version": "2.0.0",
+  "author": "eooce",
+  "description": "nav-item —— Cloudflare Pages (D1 + R2) 部署版",
+  "repository": "https://github.com/eooce/nav-item",
+  "license": "MIT",
+  "scripts": {
+    "build": "cd web && npm install && npm run build",
+    "dev": "wrangler pages dev",
+    "deploy": "npm run build && wrangler pages deploy",
+    "db:init:local": "wrangler d1 execute nav-item-db --local --file=./schema.sql",
+    "db:init:remote": "wrangler d1 execute nav-item-db --remote --file=./schema.sql"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "hono": "^4.6.3"
+  },
+  "devDependencies": {
+    "wrangler": "^3.80.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

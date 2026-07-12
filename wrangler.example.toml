@@ -1,0 +1,32 @@
+# =================================================================
+#  本地开发配置模板（仅用于 `npm run dev` / wrangler pages dev）
+#
+#  1. 复制本文件为 wrangler.toml
+#  2. 把下面 D1 的 database_id 换成你自己创建的资源 ID
+#  3. wrangler.toml 已被 .gitignore 忽略，请勿提交
+#
+#  ⚠️ 通过 Cloudflare Pages「Git 连接」部署时不需要 wrangler.toml，
+#     生产环境的 D1 / R2 / 变量请在 Pages 控制台「设置 → 绑定」中配置。
+# =================================================================
+
+name = "nav-item"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "web/dist"
+
+# D1 数据库（代码中通过 env.DB 访问）
+# 创建:  npx wrangler d1 create nav-item-db
+[[d1_databases]]
+binding = "DB"
+database_name = "nav-item-db"
+database_id = "PASTE_YOUR_D1_DATABASE_ID_HERE"
+
+# R2 存储桶（上传的图标/背景图，代码中通过 env.BUCKET 访问）
+# 创建:  npx wrangler r2 bucket create nav-item-uploads
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "nav-item-uploads"
+
+# 本地开发用变量（生产环境请在 Pages 控制台设置 JWT_SECRET 机密）
+[vars]
+JWT_SECRET = "local-dev-secret"
