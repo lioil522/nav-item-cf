@@ -106,15 +106,52 @@ npm run deploy                                # 构建并上传部署
 ## 📁 项目结构
 
 ```
-nav/
-├── functions/                 # Cloudflare Pages Functions（后端）
-│   ├── api/[[route]].js       # 全部 API（Hono 应用）
-│   └── uploads/[[key]].js     # 从 R2 读取并配信上传的图片
-├── schema.sql                 # D1 建表 + 默认数据（在 D1 Console 执行）
-├── wrangler.example.toml      # 本地开发配置模板（复制为 wrangler.toml）
-├── package.json               # 构建与部署脚本
-└── web/                       # 前端 Vue 项目（构建输出到 web/dist）
-    └── src/{api.js, views/, components/}
+  nav-item-test/
+  ├── package.json                       # 根依赖 + 构建脚本
+  ├── package-lock.json                  # 根依赖锁定
+  ├── schema.sql                         # D1 建表 + 默认数据
+  ├── wrangler.example.toml              # 本地开发配置模板
+  ├── .gitignore                         # Git 忽略规则
+  ├── README.md                          # 部署说明
+  ├── LICENSE                            # 许可证
+  │
+  ├── assets/                            # README 用截图
+  │   ├── 1.jpg
+  │   └── 7.jpg
+  │
+  ├── functions/                         # Pages 后端（自动编译为 Worker）
+  │   ├── api/
+  │   │   └── [[route]].js               # 全部 API
+  │   └── uploads/
+  │       └── [[key]].js                 # R2 图片配信
+  │
+  └── web/                               # 前端 Vue 源码（构建为 web/dist）
+      ├── index.html
+      ├── package.json
+      ├── package-lock.json
+      ├── vite.config.mjs
+      ├── public/
+      │   ├── background.webp
+      │   ├── default-favicon.png
+      │   └── robots.txt
+      └── src/
+          ├── main.js
+          ├── router.js
+          ├── api.js
+          ├── App.vue
+          ├── components/
+          │   ├── MenuBar.vue
+          │   └── CardGrid.vue
+          └── views/
+              ├── Home.vue
+              ├── Admin.vue
+              └── admin/
+                  ├── MenuManage.vue
+                  ├── CardManage.vue
+                  ├── AdManage.vue
+                  ├── FriendLinkManage.vue
+                  ├── UserManage.vue
+                  └── ThemeManage.vue
 ```
 
 ## ⚙️ 绑定与变量一览
