@@ -66,6 +66,20 @@
               <div class="welcome-icon time-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1abc9c" stroke-width="2"/><path d="M12 6v6l4 2" stroke="#1abc9c" stroke-width="2" stroke-linecap="round"/></svg>
               </div>
+              <div class="welcome-label">本次登录时间</div>
+              <div class="welcome-value">{{ currentLoginTime || '--' }}</div>
+            </div>
+            <div class="welcome-card">
+              <div class="welcome-icon ip-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1abc9c" stroke-width="2"/><path d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z" stroke="#1abc9c" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#1abc9c"/></svg>
+              </div>
+              <div class="welcome-label">本次登录IP</div>
+              <div class="welcome-value">{{ currentLoginIp || '--' }}</div>
+            </div>
+            <div class="welcome-card">
+              <div class="welcome-icon time-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1abc9c" stroke-width="2"/><path d="M12 6v6l4 2" stroke="#1abc9c" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
               <div class="welcome-label">上次登录时间</div>
               <div class="welcome-value">{{ lastLoginTime || '--' }}</div>
             </div>
@@ -93,8 +107,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { login } from '../api';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { login, getMe } from '../api';
 import MenuManage from './admin/MenuManage.vue';
 import CardManage from './admin/CardManage.vue';
 import AdManage from './admin/AdManage.vue';
@@ -103,6 +117,8 @@ import UserManage from './admin/UserManage.vue';
 import ThemeManage from './admin/ThemeManage.vue';
 
 const page = ref('welcome');
+const currentLoginTime = ref('');
+const currentLoginIp = ref('');
 const lastLoginTime = ref('');
 const lastLoginIp = ref('');
 const isLoggedIn = ref(false);
@@ -152,7 +168,14 @@ function onThemeChange(theme) {
   localStorage.setItem('adminTheme', theme);
 }
 
+// token 失效（过期/无效）时的统一处理：清除本地 token 并回到登录页
+function handleUnauthorized() {
+  localStorage.removeItem('token');
+  isLoggedIn.value = false;
+}
+
 onMounted(() => {
+  window.addEventListener('auth:unauthorized', handleUnauthorized);
   const token = localStorage.getItem('token');
   isLoggedIn.value = !!token;
   if (isLoggedIn.value) {
@@ -160,16 +183,24 @@ onMounted(() => {
     loadTheme();
   }
 });
+
+onUnmounted(() => {
+  window.removeEventListener('auth:unauthorized', handleUnauthorized);
+});
+
 async function fetchLastLoginInfo() {
   try {
-    const res = await fetch('/api/users/me', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-    if (res.ok) {
-      const data = await res.json();
-      lastLoginTime.value = data.last_login_time || '';
-      lastLoginIp.value = data.last_login_ip || '';
-    }
+    const { data } = await getMe();
+    currentLoginTime.value = data.current_login_time || '';
+    currentLoginIp.value = data.current_login_ip || '';
+    lastLoginTime.value = data.last_login_time || '';
+    lastLoginIp.value = data.last_login_ip || '';
   } catch (error) {
-    console.error('获取用户信息失败:', error);
+    // 401 已由 axios 拦截器统一处理（清除 token 并触发 auth:unauthorized）。
+    // 其它错误仅记录日志，不影响页面。
+    if (error.response?.status !== 401) {
+      console.error('获取用户信息失败:', error);
+    }
   }
 }
 
@@ -187,6 +218,8 @@ async function handleLogin() {
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       isLoggedIn.value = true;
+      currentLoginTime.value = response.data.currentLoginTime || '';
+      currentLoginIp.value = response.data.currentLoginIp || '';
       lastLoginTime.value = response.data.lastLoginTime || '';
       lastLoginIp.value = response.data.lastLoginIp || '';
     }
@@ -569,7 +602,10 @@ function closeSider() {
 }
 .welcome-cards {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 32px;
+  max-width: 640px;
 }
 .welcome-card {
   background: var(--admin-card-bg);

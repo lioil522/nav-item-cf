@@ -39,7 +39,9 @@ const DDL = [
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     last_login_time TEXT,
-    last_login_ip TEXT
+    last_login_ip TEXT,
+    prev_login_time TEXT,
+    prev_login_ip TEXT
   )`,
   `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`,
   `CREATE TABLE IF NOT EXISTS ads (
@@ -184,9 +186,24 @@ export function ensureDbInitialized(env) {
   return initPromise;
 }
 
+// 针对已存在旧表的字段迁移（幂等：列已存在时 ALTER 会报错，直接忽略）
+const MIGRATIONS = [
+  'ALTER TABLE users ADD COLUMN prev_login_time TEXT',
+  'ALTER TABLE users ADD COLUMN prev_login_ip TEXT',
+];
+
 async function doInit(env) {
   // 1) 建表（幂等）
   await env.DB.batch(DDL.map((sql) => env.DB.prepare(sql)));
+
+  // 1.5) 为已存在的 users 表补充上次登录字段（逐条执行，忽略“列已存在”错误）
+  for (const sql of MIGRATIONS) {
+    try {
+      await env.DB.prepare(sql).run();
+    } catch (_e) {
+      // 列已存在，忽略
+    }
+  }
 
   // 2) 仅在 menus 为空时写入默认数据
   const row = await env.DB.prepare('SELECT COUNT(*) AS c FROM menus').first();

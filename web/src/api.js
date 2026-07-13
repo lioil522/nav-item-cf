@@ -1,7 +1,23 @@
 import axios from 'axios';
 const BASE = '/api';
 
+// 统一处理 401：token 过期或无效时，清除本地 token 并通知应用回到登录页，
+// 避免出现「看起来已登录、实际所有请求都失败」的卡死状态（无需手动清除网站数据）。
+axios.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const login = (username, password) => axios.post(`${BASE}/login`, { username, password });
+
+// 获取当前登录用户的上次登录时间 / IP
+export const getMe = () => axios.get(`${BASE}/users/me`, { headers: authHeaders() });
 
 function authHeaders() {
   const token = localStorage.getItem('token');

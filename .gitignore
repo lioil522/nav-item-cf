@@ -1,0 +1,28 @@
+# 依赖
+node_modules/
+web/node_modules/
+
+# 前端构建产物（由 Cloudflare Pages 构建生成）
+web/dist/
+
+# 本地开发配置与密钥（含敏感信息，切勿提交）
+wrangler.toml
+.dev.vars
+.env
+.env.*
+
+# Cloudflare / wrangler 本地缓存
+.wrangler/
+
+# 日志
+*.log
+npm-debug.log*
+
+# Claude Code 本地设置
+.claude/settings.local.json
+
+# 操作系统 / 编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

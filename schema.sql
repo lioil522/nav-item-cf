@@ -45,8 +45,10 @@ CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
-  last_login_time TEXT,
-  last_login_ip TEXT
+  last_login_time TEXT,   -- 本次登录时间
+  last_login_ip TEXT,     -- 本次登录IP
+  prev_login_time TEXT,   -- 上次登录时间
+  prev_login_ip TEXT      -- 上次登录IP
 );
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 

@@ -70,18 +70,28 @@ app.post('/login', async (c) => {
   const ok = bcrypt.compareSync(password || '', user.password);
   if (!ok) return c.json({ error: '用户名或密码错误' }, 401);
 
+  // 本次登录之前的记录 = 上次登录
   const lastLoginTime = user.last_login_time;
   const lastLoginIp = user.last_login_ip;
+  // 本次登录
   const now = getShanghaiTime();
   const ip = getClientIp(c);
-  await c.env.DB.prepare('UPDATE users SET last_login_time = ?, last_login_ip = ? WHERE id = ?')
-    .bind(now, ip, user.id).run();
+  // 把原「本次」下移为「上次」，再写入新的「本次」
+  await c.env.DB.prepare(
+    'UPDATE users SET prev_login_time = ?, prev_login_ip = ?, last_login_time = ?, last_login_ip = ? WHERE id = ?'
+  ).bind(lastLoginTime ?? null, lastLoginIp ?? null, now, ip, user.id).run();
 
+  // token 有效期（小时），默认 7 天，可用环境变量 TOKEN_TTL_HOURS 覆盖
+  const ttlHours = parseInt(c.env.TOKEN_TTL_HOURS) || 24 * 7;
   const token = await sign(
-    { id: user.id, username: user.username, exp: Math.floor(Date.now() / 1000) + 2 * 60 * 60 },
+    { id: user.id, username: user.username, exp: Math.floor(Date.now() / 1000) + ttlHours * 60 * 60 },
     jwtSecret(c.env)
   );
-  return c.json({ token, lastLoginTime, lastLoginIp });
+  return c.json({
+    token,
+    currentLoginTime: now, currentLoginIp: ip,   // 本次
+    lastLoginTime, lastLoginIp,                  // 上次
+  });
 });
 
 // ==================== 菜单 ====================
@@ -295,10 +305,16 @@ app.get('/users/profile', auth, async (c) => {
 });
 
 app.get('/users/me', auth, async (c) => {
-  const user = await c.env.DB.prepare('SELECT id, username, last_login_time, last_login_ip FROM users WHERE id = ?')
-    .bind(c.get('user').id).first();
+  const user = await c.env.DB.prepare(
+    'SELECT id, username, last_login_time, last_login_ip, prev_login_time, prev_login_ip FROM users WHERE id = ?'
+  ).bind(c.get('user').id).first();
   if (!user) return c.json({ message: '用户不存在' }, 404);
-  return c.json({ last_login_time: user.last_login_time, last_login_ip: user.last_login_ip });
+  return c.json({
+    current_login_time: user.last_login_time,   // 本次
+    current_login_ip: user.last_login_ip,
+    last_login_time: user.prev_login_time,       // 上次
+    last_login_ip: user.prev_login_ip,
+  });
 });
 
 app.put('/users/password', auth, async (c) => {
