@@ -143,49 +143,52 @@ npm run deploy                                # 构建并上传部署
   nav-item-test/
   ├── package.json                       # 根依赖 + 构建脚本
   ├── package-lock.json                  # 根依赖锁定
-  ├── schema.sql                         # D1 建表 + 默认数据
+  ├── schema.sql                         # D1 建表 SQL + 默认数据
   ├── wrangler.example.toml              # 本地开发配置模板
   ├── .gitignore                         # Git 忽略规则
   ├── README.md                          # 部署说明
   ├── LICENSE                            # 许可证
   │
   ├── assets/                            # README 用截图
-  │   ├── 1.jpg
-  │   └── 7.jpg
+  │   ├── 1.jpg                          # 后台管理截图
+  │   └── 7.jpg                          # 首页导航截图
   │
   ├── functions/                         # Pages 后端（自动编译为 Worker）
   │   ├── api/
-  │   │   └── [[route]].js               # 全部 API
+  │   │   └── [[route]].js               # 全部 API 路由（登录、菜单、卡片、广告、友链、用户、设置、上传、数据备份 / 迁移）
+  │   ├── lib/
+  │   │   └── init.js                    # D1 数据库初始化 / 默认数据写入
   │   └── uploads/
-  │       └── [[key]].js                 # R2 图片配信
+  │       └── [[key]].js                 # R2 图片文件配信入口
   │
   └── web/                               # 前端 Vue 源码（构建为 web/dist）
-      ├── index.html
-      ├── package.json
-      ├── package-lock.json
-      ├── vite.config.mjs
-      ├── public/
-      │   ├── background.webp
-      │   ├── default-favicon.png
-      │   └── robots.txt
-      └── src/
-          ├── main.js
-          ├── router.js
-          ├── api.js
-          ├── App.vue
-          ├── components/
-          │   ├── MenuBar.vue
-          │   └── CardGrid.vue
-          └── views/
-              ├── Home.vue
-              ├── Admin.vue
-              └── admin/
-                  ├── MenuManage.vue
-                  ├── CardManage.vue
-                  ├── AdManage.vue
-                  ├── FriendLinkManage.vue
-                  ├── UserManage.vue
-                  └── ThemeManage.vue
+      ├── index.html                     # HTML 入口文件
+      ├── package.json                   # 前端依赖配置
+      ├── package-lock.json              # 前端依赖锁定
+      ├── vite.config.mjs                # Vite 构建配置
+      ├── public/                        # 静态资源
+      │   ├── background.webp            # 默认背景图
+      │   ├── default-favicon.png        # 默认站点图标
+      │   └── robots.txt                 # 搜索引擎抓取规则
+      └── src/                           # 前端源码
+          ├── main.js                    # Vue 应用入口
+          ├── router.js                  # 路由配置
+          ├── api.js                     # API 接口封装
+          ├── App.vue                    # 根组件
+          ├── components/                # 公共组件
+          │   ├── MenuBar.vue            # 顶部菜单栏组件
+          │   └── CardGrid.vue           # 卡片网格组件
+          └── views/                     # 页面组件
+              ├── Home.vue               # 首页导航
+              ├── Admin.vue              # 后台管理主框架
+              └── admin/                 # 后台管理子页面
+                  ├── MenuManage.vue         # 栏目管理
+                  ├── CardManage.vue         # 卡片管理
+                  ├── AdManage.vue           # 广告管理
+                  ├── FriendLinkManage.vue   # 友链管理
+                  ├── UserManage.vue         # 用户管理
+                  ├── ThemeManage.vue        # 主题与外观设置
+                  └── BackupManage.vue       # 数据备份 / 迁移页面
 ```
 
 ## 📄 许可证
