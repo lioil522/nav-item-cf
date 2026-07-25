@@ -33,7 +33,7 @@
 
 ## 🚀 快速部署（推荐：连接 Git 自动部署）
 
-> **准备工作**：一个 [Cloudflare](https://dash.cloudflare.com/) 账号 + 一个 GitHub 账号。
+> **准备工作**：一个 [Cloudflare](https://dash.cloudflare.com/) 账号 + 一个 [GitHub](https://github.com/) 账号。
 
 ### 步骤 1：Fork / 推送本仓库到 GitHub
 把本项目推到你自己的 GitHub 仓库（或 Fork 原仓库）。
