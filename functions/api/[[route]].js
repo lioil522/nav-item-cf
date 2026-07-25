@@ -416,4 +416,70 @@ app.delete('/settings/uploads/:key', auth, async (c) => {
   return c.json({ code: 200, message: '已删除' });
 });
 
+// ==================== 数据备份 / 迁移 ====================
+// 导出: 打包所有 D1 数据为 JSON；不包含 R2 中的图片文件
+// 导入: 清空所有表后按备份内容重写，含 users（密码 hash 一同恢复）
+const BACKUP_VERSION = 1;
+const BACKUP_TABLES = ['menus', 'sub_menus', 'cards', 'ads', 'friends', 'site_settings', 'users'];
+
+app.get('/backup/export', auth, async (c) => {
+  const data = {};
+  for (const t of BACKUP_TABLES) {
+    const rows = (await c.env.DB.prepare(`SELECT * FROM ${t}`).all()).results || [];
+    data[t] = rows;
+  }
+  const payload = {
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    source: 'nav-item-cf',
+    data,
+  };
+  const filename = `nav-item-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+  return new Response(JSON.stringify(payload, null, 2), {
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+    },
+  });
+});
+
+app.post('/backup/import', auth, async (c) => {
+  const body = await c.req.json().catch(() => null);
+  if (!body) return c.json({ error: '备份文件格式无效' }, 400);
+  // 兼容 { data: {...} }（直接是备份 JSON）和 { data: { data: {...} } }（外层再包一层）
+  const payload = body.data && body.data.data ? body.data : body;
+  const data = payload.data;
+  if (!data || typeof data !== 'object') return c.json({ error: '备份文件格式无效' }, 400);
+
+  // D1 不支持 PRAGMA foreign_keys 运行时切换，但 batch 里 DELETE + INSERT 由 D1 保证事务性
+  const clearOrder = ['cards', 'sub_menus', 'menus', 'ads', 'friends', 'site_settings', 'users'];
+  const stmts = [];
+  for (const t of clearOrder) {
+    stmts.push(c.env.DB.prepare(`DELETE FROM ${t}`));
+    // 重置自增序列
+    stmts.push(c.env.DB.prepare(`DELETE FROM sqlite_sequence WHERE name = ?`).bind(t));
+  }
+
+  let inserted = 0;
+  for (const t of BACKUP_TABLES) {
+    const rows = Array.isArray(data[t]) ? data[t] : [];
+    for (const row of rows) {
+      const cols = Object.keys(row);
+      if (cols.length === 0) continue;
+      const placeholders = cols.map(() => '?').join(', ');
+      const quoted = cols.map((col) => `"${col}"`).join(', ');
+      const values = cols.map((col) => row[col]);
+      stmts.push(c.env.DB.prepare(`INSERT INTO ${t} (${quoted}) VALUES (${placeholders})`).bind(...values));
+      inserted++;
+    }
+  }
+
+  try {
+    await c.env.DB.batch(stmts);
+    return c.json({ code: 200, message: `导入成功，共写入 ${inserted} 条记录`, inserted });
+  } catch (e) {
+    return c.json({ error: '导入失败: ' + (e && e.message ? e.message : String(e)) }, 500);
+  }
+});
+
 export const onRequest = handle(app);

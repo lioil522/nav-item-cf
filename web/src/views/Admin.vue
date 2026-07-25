@@ -43,6 +43,7 @@
         <li :class="{active: page==='friend'}" @click="page='friend'; closeSider()">友链管理</li>
         <li :class="{active: page==='user'}" @click="page='user'; closeSider()">用户管理</li>
         <li :class="{active: page==='theme'}" @click="page='theme'; closeSider()">主题管理</li>
+        <li :class="{active: page==='backup'}" @click="page='backup'; closeSider()">数据备份</li>
       </ul>
     </aside>
     <main class="admin-main">
@@ -84,6 +85,7 @@
         <FriendLinkManage v-if="page==='friend'" />
         <UserManage v-if="page==='user'" />
         <ThemeManage v-if="page==='theme'" @theme-change="onThemeChange" />
+        <BackupManage v-if="page==='backup'" />
       </div>
       <footer class="admin-footer">
         <p class="admin-copyright">Copyright © 2025 Nav-Item | <a href="https://github.com/eooce/Nav-Item" target="_blank" class="footer-link">Powered by eooce</a></p>
@@ -101,6 +103,7 @@ import AdManage from './admin/AdManage.vue';
 import FriendLinkManage from './admin/FriendLinkManage.vue';
 import UserManage from './admin/UserManage.vue';
 import ThemeManage from './admin/ThemeManage.vue';
+import BackupManage from './admin/BackupManage.vue';
 
 const page = ref('welcome');
 const lastLoginTime = ref('');
@@ -123,6 +126,7 @@ const pageTitle = computed(() => {
     case 'friend': return '友链管理';
     case 'user': return '用户管理';
     case 'theme': return '主题管理';
+    case 'backup': return '数据备份';
     default: return '';
   }
 });
