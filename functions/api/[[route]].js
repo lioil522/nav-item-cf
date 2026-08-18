@@ -417,10 +417,10 @@ app.delete('/settings/uploads/:key', auth, async (c) => {
 });
 
 // ==================== 数据备份 / 迁移 ====================
-// 导出: 打包所有 D1 数据为 JSON；不包含 R2 中的图片文件
-// 导入: 清空所有表后按备份内容重写，含 users（密码 hash 一同恢复）
+// 导出: 打包栏目、子栏目、卡片、广告、友链、站点设置为 JSON；不含用户账号，也不含 R2 中的图片文件
+// 导入: 清空上述表后按备份内容重写；users 表不受影响
 const BACKUP_VERSION = 1;
-const BACKUP_TABLES = ['menus', 'sub_menus', 'cards', 'ads', 'friends', 'site_settings', 'users'];
+const BACKUP_TABLES = ['menus', 'sub_menus', 'cards', 'ads', 'friends', 'site_settings'];
 
 app.get('/backup/export', auth, async (c) => {
   const data = {};
@@ -452,7 +452,8 @@ app.post('/backup/import', auth, async (c) => {
   if (!data || typeof data !== 'object') return c.json({ error: '备份文件格式无效' }, 400);
 
   // D1 不支持 PRAGMA foreign_keys 运行时切换，但 batch 里 DELETE + INSERT 由 D1 保证事务性
-  const clearOrder = ['cards', 'sub_menus', 'menus', 'ads', 'friends', 'site_settings', 'users'];
+  // users 不在清空范围内，导入后仍用当前账号密码登录
+  const clearOrder = ['cards', 'sub_menus', 'menus', 'ads', 'friends', 'site_settings'];
   const stmts = [];
   for (const t of clearOrder) {
     stmts.push(c.env.DB.prepare(`DELETE FROM ${t}`));

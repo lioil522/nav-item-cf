@@ -9,8 +9,7 @@
         <div class="bm-section">
           <h4 class="bm-section-title">导出备份</h4>
           <p class="bm-hint">
-            导出当前所有栏目、子栏目、卡片、广告、友链、站点设置及用户账号（含密码 hash）为一个 JSON 文件。
-            <strong>不包含</strong>后台上传的图片文件（背景图 / 自定义图标等），迁移后请重新上传或改用外链。
+            导出当前所有栏目、子栏目、卡片、广告、友链、站点设置为一个 JSON 文件。<strong>不包含</strong>用户账号，也<strong>不包含</strong>后台上传的图片文件（背景图 / 自定义图标等），迁移后请重新上传或改用外链。
           </p>
           <button class="bm-btn bm-btn-primary" :disabled="exporting" @click="doExport">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -23,8 +22,8 @@
         <div class="bm-section">
           <h4 class="bm-section-title">导入备份</h4>
           <p class="bm-hint bm-warning">
-            <strong>警告：</strong>导入会<strong>清空</strong>数据库中的现有栏目、卡片、广告、友链、设置和用户，
-            再用备份文件中的数据完全替换。请在确认要恢复的备份文件后再执行。
+            <strong>警告：</strong>导入会<strong>清空</strong>数据库中的现有栏目、卡片、广告、友链和设置，
+            再用备份文件中的数据完全替换。用户账号不受影响。请在确认要恢复的备份文件后再执行。
           </p>
           <div class="bm-file-row">
             <input type="file" accept="application/json,.json" ref="fileInput" class="bm-file-input" @change="onFileChange" />
@@ -81,7 +80,6 @@ const TABLE_LABELS = {
   ads: '广告',
   friends: '友链',
   site_settings: '站点设置',
-  users: '用户账号',
 };
 
 async function doExport() {
@@ -153,9 +151,8 @@ async function doImport() {
     const payload = JSON.parse(text);
     const res = await importBackup(payload);
     const msg = res.data?.message || '导入成功';
-    showMessage(msg + '，2 秒后自动退出登录，请用备份时的账号密码重新登录...', 'success');
+    showMessage(msg + '，2 秒后自动刷新页面...', 'success');
     setTimeout(() => {
-      localStorage.removeItem('token');
       window.location.reload();
     }, 2000);
   } catch (e) {
